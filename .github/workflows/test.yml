@@ -1,0 +1,29 @@
+name: Run Go Tests
+
+# This action runs on every Pull Request that targets the 'main' branch
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest # Use a standard Linux runner
+
+    steps:
+      # Step 1: Check out your code from the PR
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the Go programming language environment
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23" # Match your project's Go version
+
+      # Step 3: Run the tests
+      - name: Run Go tests
+        run: go test -v ./...
+
+      # Step 4: Run tests with coverage
+      - name: Run tests with coverage
+        run: go test -v -cover ./...

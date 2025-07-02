@@ -617,3 +617,8 @@ func printCompletionSummary(config *Config) {
 		fmt.Println("   • Pagination support for multi-page scraping")
 	}
 }
+
+// GetMetrics returns the metrics from the scraper
+func (s *Scraper) GetMetrics() interface{} {
+	return s.metrics.GetMetrics()
+}

@@ -11,6 +11,44 @@ import (
 	"time"
 )
 
+// MockScraper is a mock implementation for testing
+type MockScraper struct{}
+
+func (m *MockScraper) ScrapeURLs(urls []string) []ScrapedData {
+	results := make([]ScrapedData, len(urls))
+	for i, url := range urls {
+		results[i] = ScrapedData{
+			URL:     url,
+			Title:   "Mock Title for " + url,
+			Status:  200,
+			Size:    1024,
+			Scraped: time.Now(),
+		}
+	}
+	return results
+}
+
+func (m *MockScraper) ScrapeSite(siteURL string) []ScrapedData {
+	return []ScrapedData{
+		{
+			URL:     siteURL,
+			Title:   "Mock Site Title for " + siteURL,
+			Status:  200,
+			Size:    2048,
+			Scraped: time.Now(),
+		},
+	}
+}
+
+func (m *MockScraper) GetMetrics() interface{} {
+	return map[string]interface{}{
+		"total_requests": 0,
+		"successful":     0,
+		"failed":         0,
+		"retries":        0,
+	}
+}
+
 func TestHandleHealth(t *testing.T) {
 	// Create a mock request to pass to our handler
 	req, err := http.NewRequest("GET", "/health", nil)
@@ -21,7 +59,8 @@ func TestHandleHealth(t *testing.T) {
 	// We use httptest.NewRecorder to record the response
 	rr := httptest.NewRecorder()
 	storage := NewInMemoryStorage()
-	handler := http.HandlerFunc(NewAPIHandler(nil, DefaultConfig(), storage).HandleHealth)
+	mockScraper := &MockScraper{}
+	handler := http.HandlerFunc(NewAPIHandler(mockScraper, DefaultConfig(), storage).HandleHealth)
 
 	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
 	// directly and pass in our Request and ResponseRecorder
@@ -49,7 +88,8 @@ func TestHandleHealth(t *testing.T) {
 
 func TestHandleScrape(t *testing.T) {
 	storage := NewInMemoryStorage()
-	handler := NewAPIHandler(nil, DefaultConfig(), storage)
+	mockScraper := &MockScraper{}
+	handler := NewAPIHandler(mockScraper, DefaultConfig(), storage)
 
 	tests := []struct {
 		name           string
@@ -143,7 +183,8 @@ func TestHandleScrape(t *testing.T) {
 
 func TestHandleJobStatus(t *testing.T) {
 	storage := NewInMemoryStorage()
-	handler := NewAPIHandler(nil, DefaultConfig(), storage)
+	mockScraper := &MockScraper{}
+	handler := NewAPIHandler(mockScraper, DefaultConfig(), storage)
 
 	// Create a test job
 	testJob := &ScrapingJob{
@@ -240,7 +281,8 @@ func TestHandleMetrics(t *testing.T) {
 	config := DefaultConfig()
 	config.EnableMetrics = true
 	storage := NewInMemoryStorage()
-	handler := NewAPIHandler(nil, config, storage)
+	mockScraper := &MockScraper{}
+	handler := NewAPIHandler(mockScraper, config, storage)
 
 	// Test with metrics enabled
 	t.Run("Metrics enabled", func(t *testing.T) {
@@ -267,7 +309,8 @@ func TestHandleMetrics(t *testing.T) {
 	// Test with metrics disabled
 	t.Run("Metrics disabled", func(t *testing.T) {
 		config.EnableMetrics = false
-		handler := NewAPIHandler(nil, config, storage)
+		mockScraper := &MockScraper{}
+		handler := NewAPIHandler(mockScraper, config, storage)
 
 		req, err := http.NewRequest("GET", "/metrics", nil)
 		if err != nil {

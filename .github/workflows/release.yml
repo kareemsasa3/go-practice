@@ -1,0 +1,33 @@
+name: Build and Push Docker Image
+
+# This action runs every time you push code to the 'main' branch (e.g., after merging a PR)
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the code from the 'main' branch
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Log in to Docker Hub using the secrets you created
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Step 3: Build the Docker image and push it to Docker Hub
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          # This tags the image with 'latest' and a unique tag based on the commit hash
+          tags: |
+            kareemsasa3/arachne:latest
+            kareemsasa3/arachne:${{ github.sha }}

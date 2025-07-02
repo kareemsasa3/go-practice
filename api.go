@@ -10,6 +10,13 @@ import (
 	"github.com/google/uuid"
 )
 
+// ScraperInterface defines the interface for scrapers
+type ScraperInterface interface {
+	ScrapeURLs(urls []string) []ScrapedData
+	ScrapeSite(siteURL string) []ScrapedData
+	GetMetrics() interface{}
+}
+
 // Storage interface for job persistence
 type Storage interface {
 	SaveJob(ctx context.Context, job *ScrapingJob) error
@@ -23,13 +30,13 @@ type Storage interface {
 
 // APIHandler handles HTTP API requests
 type APIHandler struct {
-	scraper *Scraper
+	scraper ScraperInterface
 	config  *Config
 	storage Storage
 }
 
 // NewAPIHandler creates a new API handler
-func NewAPIHandler(scraper *Scraper, config *Config, storage Storage) *APIHandler {
+func NewAPIHandler(scraper ScraperInterface, config *Config, storage Storage) *APIHandler {
 	return &APIHandler{
 		scraper: scraper,
 		config:  config,
@@ -147,7 +154,7 @@ func (h *APIHandler) HandleJobStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.config.EnableMetrics {
-		response.Metrics = h.scraper.metrics.GetMetrics()
+		response.Metrics = h.scraper.GetMetrics()
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -206,13 +213,13 @@ func (h *APIHandler) HandleMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metrics := h.scraper.metrics.GetMetrics()
+	metrics := h.scraper.GetMetrics()
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(metrics)
 }
 
 // StartAPIServer starts the HTTP API server
-func StartAPIServer(scraper *Scraper, config *Config, port int) error {
+func StartAPIServer(scraper ScraperInterface, config *Config, port int) error {
 	// Initialize storage based on configuration
 	var storage Storage
 	var err error

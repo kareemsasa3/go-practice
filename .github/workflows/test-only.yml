@@ -1,0 +1,36 @@
+name: Test Only (No Docker)
+
+# This action runs on every Pull Request and push to main
+# Does NOT require Docker Hub secrets
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out your code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the Go programming language environment
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      # Step 3: Run the tests
+      - name: Run Go tests
+        run: go test -v ./...
+
+      # Step 4: Run tests with coverage
+      - name: Run tests with coverage
+        run: go test -v -cover ./...
+
+      # Step 5: Test Docker build (without pushing)
+      - name: Test Docker build
+        run: docker build -t arachne-test .

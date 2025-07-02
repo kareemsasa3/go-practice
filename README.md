@@ -129,6 +129,87 @@ Run tests with coverage:
 go test -v -cover ./...
 ```
 
+## 🔄 CI/CD with GitHub Actions
+
+This project uses GitHub Actions for automated testing, building, and deployment. The CI/CD pipeline ensures code quality and automates the release process.
+
+### 🤖 Automated Workflows
+
+#### 1. **Test Workflow** (`.github/workflows/test.yml`)
+- **Trigger**: Runs on every Pull Request to `main` branch
+- **Purpose**: Ensures no broken code gets merged
+- **Actions**:
+  - Runs `go test -v ./...`
+  - Runs tests with coverage
+  - Provides immediate feedback on code quality
+
+#### 2. **Release Workflow** (`.github/workflows/release.yml`)
+- **Trigger**: Runs when code is pushed to `main` branch
+- **Purpose**: Automatically builds and pushes Docker images
+- **Actions**:
+  - Builds Docker image from `Dockerfile`
+  - Pushes to Docker Hub with `latest` and commit hash tags
+  - Updates your Docker Hub repository automatically
+
+#### 3. **Versioned Release Workflow** (`.github/workflows/release-versioned.yml`)
+- **Trigger**: Runs when you create a Git tag (e.g., `v1.0.1`)
+- **Purpose**: Creates official releases with semantic versioning
+- **Actions**:
+  - Builds and pushes versioned Docker image
+  - Creates GitHub Release with release notes
+  - Tags Docker image with version number
+
+### 🛠️ Setup Instructions
+
+#### Step 1: Add Docker Hub Secrets
+1. Go to your GitHub repository → Settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Add these secrets:
+   - `DOCKERHUB_USERNAME`: Your Docker Hub username (`kareemsasa3`)
+   - `DOCKERHUB_TOKEN`: Your Docker Hub Access Token (not password)
+
+#### Step 2: Create Docker Hub Access Token
+1. Go to [Docker Hub](https://hub.docker.com/) → Account Settings → Security
+2. Click "New Access Token"
+3. Give it a name (e.g., "GitHub Actions")
+4. Set permissions to "Read, Write, Delete"
+5. Copy the token and add it as `DOCKERHUB_TOKEN` secret
+
+#### Step 3: Enable Branch Protection (Recommended)
+1. Go to Settings → Branches
+2. Add rule for `main` branch
+3. Enable "Require status checks to pass before merging"
+4. Select the "Run Go Tests" workflow as required
+
+### 🚀 Workflow Usage
+
+#### Daily Development
+1. Create feature branch: `git checkout -b feature/new-feature`
+2. Make changes and commit: `git commit -m "Add new feature"`
+3. Push and create PR: `git push origin feature/new-feature`
+4. GitHub Actions automatically runs tests
+5. Merge when tests pass ✅
+
+#### Creating a Release
+```bash
+# Create and push a version tag
+git tag v1.0.1
+git push origin v1.0.1
+
+# GitHub Actions automatically:
+# - Builds Docker image with v1.0.1 tag
+# - Pushes to Docker Hub
+# - Creates GitHub Release
+```
+
+### 📊 Benefits
+
+- **🛡️ Quality Gate**: Tests run automatically on every PR
+- **🚀 Zero-Downtime Deployments**: Automated Docker builds
+- **📦 Consistent Releases**: Standardized release process
+- **🔍 Transparency**: All builds and tests are visible in GitHub
+- **⚡ Speed**: No manual testing or deployment steps
+
 ## 🚀 Extending for Distributed Job Queue
 
 - **Message Queue**: Swap the in-process goroutine for a message queue (RabbitMQ, Kafka, or Redis Streams/Lists)
